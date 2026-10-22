@@ -26,7 +26,7 @@ class _ParentHomeScreenState extends State<ParentHomeScreen> {
     DeviceManageScreen(onGoto: _goto), // Màn hình Quản lý thiết bị (Code ở bên dưới)
     const ChildProfileScreen(), // Chỗ để làm CRUD Child
     const RuleScreen(), // Chỗ để làm CRUD Rule
-    const LocationTrackingScreen(), // Chỗ làm Bản đồ (Tính năng nâng cao)
+    LocationTrackingScreen(key: UniqueKey()), // Chỗ làm Bản đồ (Tính năng nâng cao)
     const _Placeholder('Thông báo & Cảnh báo'),
   ];
 

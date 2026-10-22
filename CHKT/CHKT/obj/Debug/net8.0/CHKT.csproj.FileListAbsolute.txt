@@ -144,3 +144,4 @@ C:\Users\NGUYEN PHAM TUAN\Nguyen_Pham_Tuan-LTDD\CHKT\CHKT\obj\Debug\net8.0\refin
 C:\Users\NGUYEN PHAM TUAN\Nguyen_Pham_Tuan-LTDD\CHKT\CHKT\obj\Debug\net8.0\CHKT.pdb
 C:\Users\NGUYEN PHAM TUAN\Nguyen_Pham_Tuan-LTDD\CHKT\CHKT\obj\Debug\net8.0\CHKT.genruntimeconfig.cache
 C:\Users\NGUYEN PHAM TUAN\Nguyen_Pham_Tuan-LTDD\CHKT\CHKT\obj\Debug\net8.0\ref\CHKT.dll
+C:\Users\NGUYEN PHAM TUAN\Nguyen_Pham_Tuan-LTDD\CHKT\CHKT\obj\Debug\net8.0\CHKT.sourcelink.json

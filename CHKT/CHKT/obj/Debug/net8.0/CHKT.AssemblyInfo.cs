@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CHKT")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+48b1a91df5262608869d2072ff8d7fa7624341d7")]
 [assembly: System.Reflection.AssemblyProductAttribute("CHKT")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CHKT")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

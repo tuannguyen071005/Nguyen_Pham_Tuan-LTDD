@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,16 +17,46 @@ class ChildHomeScreen extends StatefulWidget {
 }
 
 class _ChildHomeScreenState extends State<ChildHomeScreen> {
-  final String _deviceMac = "AA:BB:CC:11:22:33";
-  final int _deviceId = 1;
+  String _deviceMac = ""; // Mã QR hiển thị (tự sinh, lưu máy)
+  int? _deviceId; // ID trong Database, lấy sau khi phụ huynh quét QR
   List<dynamic> _rules = [];
   bool _isLoading = true;
   String _locationStatus = "Đang lấy vị trí...";
+
+  Timer? _locationTimer; // Bổ sung biến Timer
 
   @override
   void initState() {
     super.initState();
     _loadRules();
+
+    // Gửi vị trí ngay lập tức lần đầu tiên
+    _initDevice();
+
+    // 🔥 Cài đặt Timer tự động gửi vị trí mỗi 30 giây
+    _locationTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      _updateLocation();
+    });
+  }
+
+  @override
+  void dispose() {
+    // Hủy timer khi tắt ứng dụng để tránh rò rỉ bộ nhớ
+    _locationTimer?.cancel();
+    super.dispose();
+  }
+
+  // (Các hàm _loadRules, _updateLocation, _triggerSOS, _logout giữ nguyên như cũ)
+  // ...
+  Future<void> _initDevice() async {
+    final prefs = await SharedPreferences.getInstance();
+    var mac = prefs.getString('device_mac');
+    if (mac == null) {
+      mac = "CHILD-${DateTime.now().millisecondsSinceEpoch.toRadixString(16).toUpperCase()}";
+      await prefs.setString('device_mac', mac);
+    }
+    if (!mounted) return;
+    setState(() => _deviceMac = mac!);
     _updateLocation();
   }
 
@@ -39,6 +70,15 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
   }
 
   Future<void> _updateLocation() async {
+    if (_deviceMac.isEmpty) return;
+    if (_deviceId == null) {
+      final dev = await ApiService.getDeviceByMac(_deviceMac);
+      if (dev == null) {
+        if (mounted) setState(() => _locationStatus = "Chờ phụ huynh quét QR để ghép thiết bị...");
+        return;
+      }
+      _deviceId = dev['id'];
+    }
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) return;
 
@@ -48,11 +88,22 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
       if (permission == LocationPermission.denied) return;
     }
 
-    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    await ApiService.sendLocation(_deviceId, position.latitude, position.longitude);
-    setState(() {
-      _locationStatus = "Đã gửi GPS: ${position.latitude.toStringAsFixed(3)}, ${position.longitude.toStringAsFixed(3)}";
-    });
+    if (permission == LocationPermission.deniedForever) {
+      if (mounted) setState(() => _locationStatus = "Quyền vị trí bị chặn, hãy bật trong Cài đặt");
+      return;
+    }
+    try {
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      final ok = await ApiService.sendLocation(_deviceId!, position.latitude, position.longitude);
+      if (!mounted) return;
+      setState(() {
+        _locationStatus = ok
+            ? "Đã gửi GPS: ${position.latitude.toStringAsFixed(3)}, ${position.longitude.toStringAsFixed(3)}"
+            : "Gửi GPS thất bại (kiểm tra token / deviceId)";
+      });
+    } catch (e) {
+      if (mounted) setState(() => _locationStatus = "Lỗi GPS: $e");
+    }
   }
 
   Future<void> _logout() async {
@@ -78,7 +129,7 @@ class _ChildHomeScreenState extends State<ChildHomeScreen> {
               Expanded(child: Text(_locationStatus, style: const TextStyle(fontWeight: FontWeight.bold)))
             ]))),
             const SizedBox(height: 20),
-            QrImageView(data: _deviceMac, size: 180.0),
+            if (_deviceMac.isNotEmpty) QrImageView(data: _deviceMac, size: 180.0),
             Text("MAC: $_deviceMac", style: const TextStyle(color: Colors.grey)),
             const Divider(height: 30),
             const Align(alignment: Alignment.centerLeft, child: Text("Quy tắc giới hạn", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),

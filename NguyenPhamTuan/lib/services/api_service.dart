@@ -19,6 +19,27 @@ class ApiService {
     }
   }
 
+  // Trả về null nếu thành công, ngược lại trả về thông báo lỗi
+  static Future<String?> register(String name, String email, String password, String role) async {
+    final url = Uri.parse('$baseUrl/Authenticate/register');
+    try {
+      final response = await http.post(url,
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({"name": name, "email": email, "password": password, "role": role}));
+      print("register ${response.statusCode}: ${response.body}");
+      if (response.statusCode == 200) return null;
+      try {
+        final body = jsonDecode(response.body);
+        return body['message'] ?? body['Message'] ?? body['title'] ?? "Đăng ký thất bại (${response.statusCode})";
+      } catch (_) {
+        return "Server lỗi ${response.statusCode}";
+      }
+    } catch (e) {
+      print("register error: $e");
+      return "Không kết nối được server: $e";
+    }
+  }
+
   // Devices API
   static Future<List<dynamic>> getDevices() async {
     final url = Uri.parse('$baseUrl/DeviceApi');
@@ -44,6 +65,16 @@ class ApiService {
     final token = prefs.getString('jwt_token') ?? '';
     final response = await http.delete(url, headers: {"Authorization": "Bearer $token"});
     return response.statusCode == 200;
+  }
+
+  static Future<Map<String, dynamic>?> getDeviceByMac(String mac) async {
+    final url = Uri.parse('$baseUrl/DeviceApi/by-mac/${Uri.encodeComponent(mac)}');
+    try {
+      final response = await http.get(url);
+      return response.statusCode == 200 ? jsonDecode(response.body) : null;
+    } catch (e) {
+      return null;
+    }
   }
 
   // Children API
@@ -108,6 +139,7 @@ class ApiService {
     final response = await http.post(url,
         headers: {"Content-Type": "application/json", "Authorization": "Bearer $token"},
         body: jsonEncode({"deviceId": deviceId, "latitude": lat, "longitude": lng}));
+    print("sendLocation($deviceId) ${response.statusCode}: ${response.body}");
     return response.statusCode == 200 || response.statusCode == 201;
   }
 
@@ -116,6 +148,7 @@ class ApiService {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('jwt_token') ?? '';
     final response = await http.get(url, headers: {"Authorization": "Bearer $token"});
+    print("getLatestLocation($deviceId) ${response.statusCode}: ${response.body}");
     return response.statusCode == 200 ? jsonDecode(response.body) : null;
   }
 }

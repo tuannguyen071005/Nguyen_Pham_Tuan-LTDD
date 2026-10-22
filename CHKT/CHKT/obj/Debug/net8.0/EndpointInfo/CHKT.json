@@ -233,6 +233,28 @@
         }
       }
     },
+    "/api/DeviceApi/by-mac/{mac}": {
+      "get": {
+        "tags": [
+          "DeviceApi"
+        ],
+        "parameters": [
+          {
+            "name": "mac",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/DeviceApi/{id}": {
       "get": {
         "tags": [

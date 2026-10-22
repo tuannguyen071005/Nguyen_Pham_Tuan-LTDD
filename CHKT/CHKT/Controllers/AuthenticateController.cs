@@ -45,7 +45,7 @@ namespace CHKT.Controllers
                 return BadRequest(new { Message = "Đăng ký thất bại. Mật khẩu cần có chữ hoa, chữ thường, số và ký tự đặc biệt." });
 
             // 🔥 SỬA ĐOẠN NÀY: Lấy role từ model gửi lên (nếu không truyền thì mới lấy mặc định là "Parent")
-            string roleToAssign = string.IsNullOrEmpty(model.Role) ? "Parent" : model.Role;
+            string roleToAssign = model.Role == "Child" ? "Child" : "Parent";
 
             // Đảm bảo Role đã tồn tại trong database
             if (!await _roleManager.RoleExistsAsync(roleToAssign))

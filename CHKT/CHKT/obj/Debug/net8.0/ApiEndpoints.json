@@ -190,6 +190,22 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "CHKT.Controllers.DeviceApiController",
+    "Method": "GetByMac",
+    "RelativePath": "api/DeviceApi/by-mac/{mac}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "mac",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "CHKT.Controllers.LocationApiController",
     "Method": "UpdateLocation",
     "RelativePath": "api/LocationApi",

@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import '../services/api_service.dart';
 import 'child/child_home_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final LocalAuthentication _auth = LocalAuthentication();
   bool _isLoading = false;
+  bool _obscure = true;
 
   Future<void> _handleLogin() async {
     setState(() {
@@ -40,6 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // 2. Lưu token vào SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('jwt_token', token);
+      await prefs.setString('bio_token', token);
 
       // 3. Giải mã JWT để lấy Role
       Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
@@ -105,10 +108,16 @@ class _LoginScreenState extends State<LoginScreen> {
       if (didAuthenticate) {
         // Kiểm tra xem trước đó đã lưu token hoặc email nào chưa
         final prefs = await SharedPreferences.getInstance();
-        final savedToken = prefs.getString('jwt_token');
+        final savedToken = prefs.getString('bio_token');
 
         if (savedToken != null && savedToken.isNotEmpty) {
           // Giải mã token cũ để lấy role và chuyển hướng luôn
+          if (JwtDecoder.isExpired(savedToken)) {
+            if (!mounted) return;
+            _showMsg("Phiên đã hết hạn, vui lòng đăng nhập lại bằng mật khẩu");
+            return;
+          }
+          await prefs.setString('jwt_token', savedToken); // khôi phục token cho ApiService
           Map<String, dynamic> decodedToken = JwtDecoder.decode(savedToken);
           String role = decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ?? 'Parent';
           String email = decodedToken['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ?? 'user@gmail.com';
@@ -143,8 +152,9 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(title: const Text("Đăng nhập hệ thống")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.only(top: 60),
           children: [
             // Ô nhập email & password hiện tại của bạn...
             TextField(
@@ -154,8 +164,14 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 12),
             TextField(
               controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: "Mật khẩu"),
+              obscureText: _obscure,
+              decoration: InputDecoration(
+                labelText: "Mật khẩu",
+                suffixIcon: IconButton(
+                  icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
+                  onPressed: () => setState(() => _obscure = !_obscure),
+                ),
+              ),
             ),
             const SizedBox(height: 20),
 
@@ -163,6 +179,11 @@ class _LoginScreenState extends State<LoginScreen> {
             ElevatedButton(
               onPressed: _handleLogin,
               child: const Text("Đăng nhập"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
+              child: const Text("Chưa có tài khoản? Đăng ký"),
             ),
 
             const SizedBox(height: 16),
