@@ -1,0 +1,10 @@
+# Bỏ qua thư mục cache của Visual Studio
+.vs/
+CHKT/.vs/
+CHKT/CHKT/bin/
+CHKT/CHKT/obj/
+
+# Bỏ qua thư mục build của Flutter / Android Studio
+NguyenPhamTuan/.dart_tool/
+NguyenPhamTuan/.pub/
+NguyenPhamTuan/build/
