@@ -24,6 +24,16 @@ namespace CHKT.Controllers
             return Ok(devices);
         }
 
+        // Máy con tra Id của mình theo mã QR
+        [HttpGet("by-mac/{mac}")]
+        public async Task<IActionResult> GetByMac(string mac)
+        {
+            var devices = await _deviceRepository.GetAllDevicesAsync();
+            var device = devices.FirstOrDefault(d => d.MacAddress == mac);
+            if (device == null) return NotFound(new { Message = "Chưa được ghép" });
+            return Ok(device);
+        }
+
         // 2. READ ONE (Lấy chi tiết 1 thiết bị theo ID)
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -39,6 +49,10 @@ namespace CHKT.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Device device)
         {
+            var all = await _deviceRepository.GetAllDevicesAsync();
+            if (all.Any(d => d.MacAddress == device.MacAddress))
+                return Conflict(new { Message = "Thiết bị này đã được thêm" });
+
             await _deviceRepository.AddDeviceAsync(device);
             return Ok(new { Message = "Thêm thiết bị thành công" });
         }
